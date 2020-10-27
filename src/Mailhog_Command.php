@@ -3,7 +3,6 @@
 
 use EE\Model\Site;
 use function EE\Site\Utils\auto_site_name;
-use function EE\Utils\docker_compose_with_custom;
 
 /**
  * Manages mailhog on a site.
@@ -50,8 +49,8 @@ class Mailhog_Command extends EE_Command {
 			EE::error( 'Mailhog is already up.' );
 		}
 		EE_DOCKER::docker_compose_up( $this->site_data->site_fs_path, [ 'mailhog' ] );
-		EE::exec( docker_compose_with_custom() . " exec postfix postconf -e 'relayhost = mailhog:1025'" );
-		EE::exec( docker_compose_with_custom() . ' restart postfix' );
+		EE::exec( \EE_DOCKER::docker_compose_with_custom() . " exec postfix postconf -e 'relayhost = mailhog:1025'" );
+		EE::exec( \EE_DOCKER::docker_compose_with_custom() . ' restart postfix' );
 
 		$this->site_data->mailhog_enabled = 1;
 		$this->site_data->save();
@@ -85,9 +84,9 @@ class Mailhog_Command extends EE_Command {
 		if ( ! $this->mailhog_enabled() ) {
 			EE::error( 'Mailhog is already down.' );
 		}
-		EE::exec( docker_compose_with_custom() . ' stop mailhog' );
-		EE::exec( docker_compose_with_custom() . ' exec postfix postconf -e \'relayhost =\'' );
-		EE::exec( docker_compose_with_custom() . ' restart postfix' );
+		EE::exec( \EE_DOCKER::docker_compose_with_custom() . ' stop mailhog' );
+		EE::exec( \EE_DOCKER::docker_compose_with_custom() . ' exec postfix postconf -e \'relayhost =\'' );
+		EE::exec( \EE_DOCKER::docker_compose_with_custom() . ' restart postfix' );
 
 		$this->site_data->mailhog_enabled = 0;
 		$this->site_data->save();
@@ -146,7 +145,7 @@ class Mailhog_Command extends EE_Command {
 	private function mailhog_enabled() {
 
 		$this->check_mailhog_available();
-		$launch = EE::launch( docker_compose_with_custom() . ' ps -q mailhog' );
+		$launch = EE::launch( \EE_DOCKER::docker_compose_with_custom() . ' ps -q mailhog' );
 		$id     = trim( $launch->stdout );
 		if ( empty( $id ) ) {
 			return false;
